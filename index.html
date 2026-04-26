@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>企业码消费分析 · 交互仪表盘</title>
+<script src="echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts-gl@2/dist/echarts-gl.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'PingFang SC','Helvetica Neue',Arial,sans-serif;background:#0f1117;color:#e8eaed;font-size:14px}
+.header{background:linear-gradient(135deg,#1a73e8,#0d47a1);padding:28px 36px 32px;border-radius:0 0 20px 20px}
+.header-title{font-size:22px;font-weight:800;margin-bottom:4px}
+.header-sub{opacity:0.7;font-size:12px;margin-bottom:16px}
+.kpi-row{display:flex;gap:12px;flex-wrap:wrap}
+.kpi{background:rgba(255,255,255,.14);border-radius:10px;padding:10px 16px;min-width:105px}
+.kpi-v{font-size:20px;font-weight:800}
+.kpi-l{font-size:10px;opacity:0.65;margin-top:2px}
+.tab-nav{display:flex;gap:4px;padding:14px 20px 0;flex-wrap:wrap}
+.tab{background:#1e2030;border:none;color:#8b8fa3;padding:7px 14px;border-radius:7px 7px 0 0;cursor:pointer;font-size:12px;font-family:inherit}
+.tab.active{background:#1a73e8;color:#fff;font-weight:600}
+.tab:hover:not(.active){color:#c5c8d2}
+.chart-panel{display:none;padding:16px 20px 24px}
+.chart-panel.active{display:block}
+.chart-card{background:#1e2030;border-radius:14px;padding:18px;margin-bottom:16px}
+.chart-title{font-size:13px;font-weight:600;color:#c5c8d2;margin-bottom:2px}
+.chart-sub{font-size:11px;color:#5c6070;margin-bottom:12px}
+.chart-box{width:100%;height:320px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:768px){.grid2{grid-template-columns:1fr}}
+.footer{text-align:center;color:#3d4050;font-size:11px;padding:14px 0 10px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">📊 企业码消费分析 · 交互仪表盘</div>
+  <div class="header-sub">2026年3月  |  40,522笔订单  |  Hover 查看详情</div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-v">198.5万</div><div class="kpi-l">消费总额</div></div>
+    <div class="kpi"><div class="kpi-v">¥49.0</div><div class="kpi-l">整体客单价</div></div>
+    <div class="kpi"><div class="kpi-v">32省</div><div class="kpi-l">覆盖省份</div></div>
+    <div class="kpi"><div class="kpi-v">19个</div><div class="kpi-l">活跃部门</div></div>
+    <div class="kpi"><div class="kpi-v">1.3%</div><div class="kpi-l">退款率</div></div>
+  </div>
+</div>
+
+<div class="tab-nav">
+  <button class="tab active" onclick="showTab('overview')">总览</button>
+  <button class="tab" onclick="showTab('province')">省份</button>
+  <button class="tab" onclick="showTab('dept')">部门</button>
+  <button class="tab" onclick="showTab('merchant')">商户</button>
+  <button class="tab" onclick="showTab('trend')">趋势</button>
+  <button class="tab" onclick="showTab('geo')">地理</button>
+</div>
+
+<div id="panel-overview" class="chart-panel active">
+  <div class="grid2">
+    <div class="chart-card">
+      <div class="chart-title">各部门消费金额 TOP10</div>
+      <div class="chart-sub">单位：万元</div>
+      <div class="chart-box" id="c-dept"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">各省份消费金额 TOP15</div>
+      <div class="chart-sub">北京占比超52%</div>
+      <div class="chart-box" id="c-province"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">消费价格段分布</div>
+      <div class="chart-sub">85%订单在50元以内</div>
+      <div class="chart-box" id="c-price" style="height:280px"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">商户消费 TOP10</div>
+      <div class="chart-sub">单位：万元</div>
+      <div class="chart-box" id="c-merchant" style="height:280px"></div>
+    </div>
+  </div>
+</div>
+
+<div id="panel-province" class="chart-panel">
+  <div class="grid2">
+    <div class="chart-card">
+      <div class="chart-title">省份消费金额 TOP15</div>
+      <div class="chart-sub">单位：万元</div>
+      <div class="chart-box" id="c-province2"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">省份单均价 TOP10</div>
+      <div class="chart-sub">单位：元/笔</div>
+      <div class="chart-box" id="c-province-avg"></div>
+    </div>
+  </div>
+</div>
+
+<div id="panel-dept" class="chart-panel">
+  <div class="chart-card">
+    <div class="chart-title">各部门消费金额</div>
+    <div class="chart-sub">单位：万元</div>
+    <div class="chart-box" id="c-dept2"></div>
+  </div>
+</div>
+
+<div id="panel-merchant" class="chart-panel">
+  <div class="grid2">
+    <div class="chart-card">
+      <div class="chart-title">商户消费总额 TOP10</div>
+      <div class="chart-sub">单位：万元</div>
+      <div class="chart-box" id="c-merchant2"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">商户单均价 TOP10</div>
+      <div class="chart-sub">单位：元/笔（实际每笔消费金额）</div>
+      <div class="chart-box" id="c-merchant-avg"></div>
+    </div>
+  </div>
+</div>
+
+<div id="panel-trend" class="chart-panel">
+  <div class="grid2">
+    <div class="chart-card">
+      <div class="chart-title">每日消费总额趋势</div>
+      <div class="chart-sub">单位：万元</div>
+      <div class="chart-box" id="c-daily-total"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">每日客单价趋势</div>
+      <div class="chart-sub">单位：元/笔</div>
+      <div class="chart-box" id="c-daily-avg"></div>
+    </div>
+  </div>
+</div>
+
+<div id="panel-geo" class="chart-panel">
+  <div class="grid2">
+    <div class="chart-card">
+      <div class="chart-title">🏙️ 地理分布（柱状图高度 + 颜色深度）</div>
+      <div class="chart-sub">颜色越深=金额越高 | 柱越高=金额越大</div>
+      <div class="chart-box" id="c-geo-map" style="height:360px"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">🌡️ 热力散点图</div>
+      <div class="chart-sub">气泡越大=金额越高 | 颜色=强度</div>
+      <div class="chart-box" id="c-geo-scatter" style="height:360px"></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">数据来源：企业对账单系统（汇总账单口径：净额-退款）  |  可视化：Apache ECharts 5 + ECharts GL  |  帕克分机号</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  数据（正确口径：净额 - 退款，绝对值）
+//  与汇总账单完全一致，总额 = 198.5346万
+// ═══════════════════════════════════════════════
+
+const DEPT = [
+  {name:'上海东福-74704',value:98.32},{name:'上海东福-74159',value:25.41},
+  {name:'上海东福-74377',value:21.82},{name:'上海东福-75527',value:11.33},
+  {name:'上海东福-75105',value:8.47},{name:'上海东福-75054',value:7.16},
+  {name:'上海东福-49163',value:5.88},{name:'上海东福-61031',value:5.13},
+  {name:'上海东福-75033',value:4.72},{name:'上海东福-75468',value:3.94},
+];
+
+const PROV = [
+  {name:'北京市',value:103.75},{name:'上海市',value:26.81},
+  {name:'浙江省',value:13.66},{name:'江苏省',value:8.23},
+  {name:'河北省',value:5.54},{name:'四川省',value:4.45},
+  {name:'广东省',value:3.58},{name:'福建省',value:2.67},
+  {name:'山东省',value:2.58},{name:'河南省',value:2.11},
+  {name:'辽宁省',value:1.97},{name:'湖北省',value:1.89},
+  {name:'重庆市',value:1.83},{name:'陕西省',value:1.67},
+  {name:'甘肃省',value:1.65},
+];
+
+// 全量省份数据（万元）
+const PROV_FULL = [
+  {name:'北京市',value:101.30},{name:'上海市',value:26.39},
+  {name:'浙江省',value:13.45},{name:'江苏省',value:7.98},
+  {name:'河北省',value:5.50},{name:'四川省',value:4.34},
+  {name:'广东省',value:3.56},{name:'福建省',value:2.62},
+  {name:'山东省',value:2.05},{name:'河南省',value:1.94},
+  {name:'辽宁省',value:1.92},{name:'湖北省',value:1.74},
+  {name:'重庆市',value:1.80},{name:'陕西省',value:1.64},
+  {name:'甘肃省',value:1.62},{name:'湖南省',value:1.32},
+  {name:'天津市',value:1.26},{name:'黑龙江省',value:1.24},
+  {name:'广西壮族自治区',value:1.00},{name:'海南省',value:0.88},
+  {name:'吉林省',value:0.83},{name:'贵州省',value:0.77},
+  {name:'安徽省',value:0.73},{name:'内蒙古自治区',value:0.62},
+  {name:'云南省',value:0.62},{name:'山西省',value:0.38},
+  {name:'江西省',value:0.22},{name:'宁夏回族自治区',value:0.06},
+  {name:'新疆维吾尔自治区',value:0.04},{name:'西藏自治区',value:0.01},
+  {name:'青海省',value:0.01},{name:'香港特别行政区',value:0.00},
+];
+
+// 价格段（笔数）
+const PRICE = [
+  {name:'0-20元',value:20097},{name:'20-50元',value:14275},
+  {name:'50-100元',value:2663},{name:'100-200元',value:1513},
+  {name:'200-500元',value:1227},{name:'500-1000元',value:521},
+  {name:'1000元+',value:226},
+];
+
+const MERCH = [
+  {name:'小妮的店',value:8.73},{name:'北京嘉信瑞景',value:8.61},
+  {name:'兄弟餐馆',value:6.56},{name:'饭饭之辈',value:5.00},
+  {name:'北京西郊杏园',value:4.13},{name:'辣萝卜餐馆',value:3.78},
+  {name:'面条',value:2.97},{name:'麦当劳',value:1.65},
+  {name:'黄州区佳期',value:1.48},{name:'遇见味道',value:1.18},
+];
+
+const MERCH_AVG = [
+  {name:'湖南未下山滨江',value:5285.3},{name:'上海逸欣兰',value:3157.0},
+  {name:'永安热力',value:2578.5},{name:'上海云追雁',value:2120.0},
+  {name:'sweetshop',value:2000.0},{name:'北京康源体育',value:2000.0},
+  {name:'成都贡梅观锦',value:1954.4},{name:'保定信誉楼',value:1948.8},
+  {name:'主食厨房馒头',value:1900.0},{name:'泰安门',value:1856.0},
+];
+
+const PROV_AVG = [
+  {name:'海南省',value:141.4},{name:'宁夏',value:118.8},
+  {name:'吉林省',value:96.6},{name:'内蒙古',value:89.8},
+  {name:'广东省',value:81.7},{name:'浙江省',value:74.1},
+  {name:'新疆',value:69.9},{name:'黑龙江',value:67.5},
+  {name:'湖南省',value:60.3},{name:'四川省',value:57.0},
+];
+
+const DAILY_TOTAL = [
+  [1,2.40],[2,2.55],[3,5.23],[4,3.83],[5,4.14],[6,5.87],[7,6.43],
+  [8,5.08],[9,4.31],[10,8.96],[11,8.69],[12,7.76],[13,7.38],[14,7.42],
+  [15,6.18],[16,5.12],[17,6.20],[18,7.31],[19,9.50],[20,8.99],
+  [21,10.60],[22,8.11],[23,6.13],[24,8.03],[25,7.71],[26,7.06],
+  [27,5.97],[28,8.13],[29,5.55],[30,3.81],[31,4.10],
+];
+
+const DAILY_AVG = [
+  [1,137.0],[2,66.5],[3,74.7],[4,45.6],[5,36.3],[6,42.6],[7,71.4],
+  [8,64.1],[9,32.5],[10,61.6],[11,54.5],[12,47.7],[13,41.0],[14,63.4],
+  [15,60.3],[16,33.1],[17,37.6],[18,44.9],[19,52.4],[20,45.7],
+  [21,71.1],[22,63.6],[23,35.7],[24,45.1],[25,41.6],[26,37.5],
+  [27,43.7],[28,90.9],[29,67.6],[30,31.6],[31,30.6],
+];
+
+// ═══════════════════════════════════════════════
+//  图表工厂
+// ═══════════════════════════════════════════════
+const TEXT = '#8b8fa3';
+const GRID = '#2a2d3d';
+const BG = '#1e2030';
+
+function baseOpt() {
+  return {
+    backgroundColor: 'transparent',
+    textStyle: { color: TEXT, fontSize: 12 },
+    tooltip: { trigger: 'axis', backgroundColor: BG, borderColor: GRID, borderWidth: 1, textStyle: { color: '#e8eaed', fontSize: 12 }, axisPointer: { lineStyle: { color: GRID } } },
+    grid: { borderColor: GRID },
+  };
+}
+
+function hBar(id, data, unitLabel) {
+  const el = document.getElementById(id);
+  const chart = echarts.init(el);
+  const opt = baseOpt();
+  opt.xAxis = { type: 'value', axisLabel: { color: TEXT, fontSize: 11 }, splitLine: { lineStyle: { color: GRID, type: 'dashed' } }, axisLine: { lineStyle: { color: GRID } }, axisTick: { show: false } };
+  opt.yAxis = { type: 'category', data: data.map(d => d.name), axisLabel: { color: TEXT, fontSize: 11 }, axisLine: { lineStyle: { color: GRID } }, axisTick: { show: false }, splitLine: { show: false } };
+  opt.series = [{ type: 'bar', data: data.map(d => d.value), itemStyle: { color: '#5B8FF9', borderRadius: [0, 4, 4, 0] }, label: { show: true, position: 'right', formatter: '{c}' + (unitLabel || '万'), color: TEXT, fontSize: 10 }, barMaxWidth: 22 }];
+  opt.grid = { left: 120, right: 60, top: 12, bottom: 24 };
+  chart.setOption(opt);
+  return chart;
+}
+
+function vBar(id, data, colors) {
+  const el = document.getElementById(id);
+  const chart = echarts.init(el);
+  const opt = baseOpt();
+  opt.tooltip = { trigger: 'item', backgroundColor: BG, borderColor: GRID, textStyle: { color: '#e8eaed', fontSize: 12 }, formatter: '{b}: {c}笔 ({d}%)' };
+  opt.series = [{ type: 'pie', radius: ['38%', '68%'], center: ['50%', '50%'], data: data.map((d, i) => ({ name: d.name, value: d.value, itemStyle: { color: colors[i % colors.length] } })), label: { formatter: '{b}\n{d}%', color: TEXT, fontSize: 11 }, labelLine: { lineStyle: { color: GRID } }, emphasis: { itemStyle: { shadowBlur: 10 } } }];
+  opt.grid = { left: 12, right: 12, top: 12, bottom: 24 };
+  chart.setOption(opt);
+  return chart;
+}
+
+function lineChart(id, data, color, yFmt, yUnit) {
+  const el = document.getElementById(id);
+  const chart = echarts.init(el);
+  const opt = baseOpt();
+  opt.xAxis = { type: 'category', data: data.map(d => d[0] + '日'), axisLabel: { color: TEXT, fontSize: 10 }, axisLine: { lineStyle: { color: GRID } }, axisTick: { show: false }, splitLine: { show: false } };
+  opt.yAxis = { type: 'value', axisLabel: { color: TEXT, fontSize: 10, formatter: yFmt }, splitLine: { lineStyle: { color: GRID, type: 'dashed' } }, axisLine: { lineStyle: { color: GRID } }, axisTick: { show: false } };
+  opt.series = [{ type: 'line', data: data.map(d => d[1]), smooth: 0.3, lineStyle: { color: color, width: 2 }, itemStyle: { color: color }, areaStyle: { color: color, opacity: 0.1 }, symbol: 'circle', symbolSize: 4 }];
+  opt.grid = { left: 48, right: 24, top: 16, bottom: 36 };
+  opt.tooltip = { trigger: 'axis', backgroundColor: BG, borderColor: GRID, textStyle: { color: '#e8eaed', fontSize: 12 }, formatter: function(params) { const d = data[params[0].dataIndex]; return d[0] + '日<br/>' + params[0].marker + params[0].seriesName + ': ' + d[1] + yUnit; } };
+  chart.setOption(opt);
+  return chart;
+}
+
+// ═══════════════════════════════════════════════
+//  地理图表（3D 柱状图 + 热力散点）
+// ═══════════════════════════════════════════════
+const GEO_JSON_URL = './china.json';
+
+let geoLoaded = false;
+let geoDataMap = {}; // name -> [lng, lat]
+
+function initGeoCharts() {
+  if (!geoLoaded) return;
+  geoBar3D('c-geo-map', PROV_FULL);
+  geoScatter('c-geo-scatter', PROV_FULL);
+}
+
+function geoBar3D(id, data) {
+  const el = document.getElementById(id);
+  const chart = echarts.init(el);
+
+  const maxVal = Math.max(...data.map(d => d.value));
+  const maxHeight = 15;
+
+  const barData = data.map(d => {
+    const coord = geoDataMap[d.name] || [116.4, 39.9];
+    const h = maxVal > 0 ? (d.value / maxVal) * maxHeight : 0;
+    return {
+      name: d.name,
+      value: [...coord, h],
+      itemStyle: { color: colorByValue(d.value, maxVal) }
+    };
+  });
+
+  const opt = {
+    backgroundColor: 'transparent',
+    geo3D: {
+      map: 'china',
+      roam: true,
+      itemStyle: { color: '#1e2030', opacity: 0.95, borderColor: '#3a3f5c', borderWidth: 0.8 },
+      emphasis: { itemStyle: { color: '#2a2f4a' }, label: { show: true, color: '#e8eaed', fontSize: 12 } },
+      shading: 'color',
+      realisticMaterial: { roughness: 0.7, metalness: 0.1 },
+      groundPlane: { show: false },
+      light: { main: { intensity: 1.2, shadow: false, alpha: 40, beta: 30 } },
+      viewControl: { alpha: 45, beta: 5, center: [0, 0, -2], zoom: 1.1, autoRotate: false },
+      postEffect: { enable: false },
+      temporalSuperSampling: { enable: false }
+    },
+    series: [{
+      type: 'bar3D',
+      coordinateSystem: 'geo3D',
+      data: barData,
+      shading: 'color',
+      barSize: 0.8,
+      minHeight: 0.2,
+      maxHeight: maxHeight,
+      emphasis: { itemStyle: { color: '#7BA3FF' } },
+      label: {
+        show: false,
+        formatter: function(p) { return p.data.name + '\n' + p.data.value[2].toFixed(1) + '万'; },
+        color: '#e8eaed', fontSize: 10
+      }
+    }],
+    tooltip: {
+      backgroundColor: BG,
+      borderColor: GRID,
+      textStyle: { color: '#e8eaed', fontSize: 12 },
+      formatter: function(p) {
+        const name = p.data.name;
+        const val = data.find(d => d.name === name);
+        return name + '<br/>消费总额：<b>' + (val ? val.value.toFixed(2) : '0.00') + '万元</b>';
+      }
+    },
+    visualMap: {
+      show: false,
+      min: 0,
+      max: maxVal,
+      inRange: { color: ['#0a1444', '#1a3a8f', '#3b6ddc', '#7BA3FF', '#f0f4ff'] }
+    }
+  };
+
+  chart.setOption(opt);
+  return chart;
+}
+
+function geoScatter(id, data) {
+  const el = document.getElementById(id);
+  const chart = echarts.init(el);
+
+  const maxVal = Math.max(...data.map(d => d.value));
+
+  const scatterData = data.filter(d => {
+    const coord = geoDataMap[d.name];
+    return coord && d.value > 0;
+  }).map(d => {
+    const coord = geoDataMap[d.name];
+    const s = maxVal > 0 ? 8 + (d.value / maxVal) * 50 : 4;
+    return {
+      name: d.name,
+      value: [...coord, s],
+      value2: d.value,
+      itemStyle: { color: colorByValue(d.value, maxVal, 0.6) }
+    };
+  });
+
+  const opt = {
+    backgroundColor: 'transparent',
+    geo: {
+      map: 'china',
+      roam: true,
+      itemStyle: { areaColor: '#1e2030', borderColor: '#3a3f5c', borderWidth: 0.8 },
+      emphasis: { itemStyle: { areaColor: '#2a2f4a' }, label: { show: true, color: '#e8eaed', fontSize: 12 } },
+      label: { show: false },
+      zoom: 1.2,
+      center: [105, 36]
+    },
+    series: [{
+      type: 'effectScatter',
+      coordinateSystem: 'geo',
+      data: scatterData,
+      symbolSize: function(val) { return val[2]; },
+      rippleEffect: { brushType: 'stroke', scale: 3 },
+      itemStyle: { color: '#5B8FF9', opacity: 0.85 },
+      label: {
+        show: true,
+        position: 'right',
+        formatter: function(p) { return p.data.name + '\n' + p.data.value2.toFixed(2) + '万'; },
+        color: '#c5c8d2', fontSize: 10, lineHeight: 14
+      }
+    }],
+    tooltip: {
+      backgroundColor: BG,
+      borderColor: GRID,
+      textStyle: { color: '#e8eaed', fontSize: 12 },
+      formatter: function(p) {
+        return p.data.name + '<br/>消费总额：<b>' + p.data.value2.toFixed(2) + '万元</b>';
+      }
+    },
+    visualMap: {
+      show: true,
+      right: 20,
+      bottom: 30,
+      min: 0,
+      max: maxVal,
+      inRange: { color: ['#0a1444', '#1a3a8f', '#3b6ddc', '#5B8FF9', '#f0f4ff'] },
+      textStyle: { color: TEXT },
+      formatter: function(val) { return val.toFixed(1) + '万'; }
+    }
+  };
+
+  chart.setOption(opt);
+  return chart;
+}
+
+// 颜色函数：value→color，灰蓝渐变
+function colorByValue(val, maxVal, alpha) {
+  const t = maxVal > 0 ? Math.pow(val / maxVal, 0.6) : 0;
+  if (alpha === undefined) alpha = 1;
+  if (t < 0.02) return 'rgba(15,20,40,' + alpha + ')';
+  if (t < 0.1)  return 'rgba(26,58,143,' + alpha + ')';
+  if (t < 0.3)  return 'rgba(59,109,220,' + alpha + ')';
+  if (t < 0.6)  return 'rgba(91,143,249,' + alpha + ')';
+  if (t < 0.85) return 'rgba(123,163,255,' + alpha + ')';
+  return 'rgba(240,246,255,' + alpha + ')';
+}
+
+// ═══════════════════════════════════════════════
+//  初始化
+// ═══════════════════════════════════════════════
+const charts = {};
+
+async function initCharts() {
+  charts['c-dept'] = hBar('c-dept', DEPT, '万');
+  charts['c-province'] = hBar('c-province', PROV, '万');
+  charts['c-price'] = vBar('c-price', PRICE, ['#9D6CF7','#5B8FF9','#34A853','#FFD666','#FF7875','#61DDAA','#E8684A']);
+  charts['c-merchant'] = hBar('c-merchant', MERCH, '万');
+  charts['c-province2'] = hBar('c-province2', PROV, '万');
+  charts['c-province-avg'] = hBar('c-province-avg', PROV_AVG, '元');
+  charts['c-dept2'] = hBar('c-dept2', DEPT, '万');
+  charts['c-merchant2'] = hBar('c-merchant2', MERCH, '万');
+  charts['c-merchant-avg'] = hBar('c-merchant-avg', MERCH_AVG, '元');
+  charts['c-daily-total'] = lineChart('c-daily-total', DAILY_TOTAL, '#5B8FF9', '{value}', '万');
+  charts['c-daily-avg'] = lineChart('c-daily-avg', DAILY_AVG, '#FF7875', '{value}', '元');
+
+  // 加载中国地图 GeoJSON 并提取省份中心点
+  try {
+    const resp = await fetch(GEO_JSON_URL);
+    const geoJson = await resp.json();
+    const echarts = window.echarts;
+    echarts.registerMap('china', geoJson);
+
+    // 从 GeoJSON features 提取每个省份的中心点
+    for (const feat of geoJson.features) {
+      const name = feat.properties.name;
+      if (feat.geometry && feat.geometry.type === 'Polygon') {
+        const coords = feat.geometry.coordinates[0];
+        let sumX = 0, sumY = 0, cnt = 0;
+        for (const [x, y] of coords) { sumX += x; sumY += y; cnt++; }
+        if (cnt > 0) geoDataMap[name] = [sumX / cnt, sumY / cnt];
+      } else if (feat.geometry && feat.geometry.type === 'MultiPolygon') {
+        const polys = feat.geometry.coordinates;
+        let sumX = 0, sumY = 0, cnt = 0;
+        for (const poly of polys) {
+          for (const [x, y] of poly[0]) { sumX += x; sumY += y; cnt++; }
+        }
+        if (cnt > 0) geoDataMap[name] = [sumX / cnt, sumY / cnt];
+      }
+    }
+    geoLoaded = true;
+    initGeoCharts();
+  } catch(e) {
+    console.error('[geo] load failed', e);
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  Tab 切换
+// ═══════════════════════════════════════════════
+const TAB_INDEX_MAP = { overview: 0, province: 1, dept: 2, merchant: 3, trend: 4, geo: 5 };
+const TAB_NAMES = ['overview','province','dept','merchant','trend','geo'];
+
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.chart-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  const idx = TAB_INDEX_MAP[name] !== undefined ? TAB_INDEX_MAP[name] : 0;
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+  requestAnimationFrame(() => {
+    document.getElementById('panel-' + name).querySelectorAll('[id^="c-"]').forEach(el => {
+      const c = charts[el.id];
+      if (c) c.resize();
+    });
+    if (name === 'geo' && geoLoaded) {
+      ['c-geo-map', 'c-geo-scatter'].forEach(id => {
+        const c = charts[id];
+        if (c) setTimeout(() => c.resize(), 50);
+      });
+    }
+  });
+}
+
+window.addEventListener('resize', () => Object.values(charts).forEach(c => c && c.resize()));
+if (typeof echarts !== 'undefined') initCharts();
+else window.addEventListener('load', initCharts);
+</script>
+</body>
+</html>
