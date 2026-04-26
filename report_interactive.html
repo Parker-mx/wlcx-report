@@ -29,6 +29,15 @@ body{font-family:-apple-system,'PingFang SC','Helvetica Neue',Arial,sans-serif;b
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 @media(max-width:768px){.grid2{grid-template-columns:1fr}}
 .footer{text-align:center;color:#3d4050;font-size:11px;padding:14px 0 10px}
+.insight{margin-top:12px;background:#1a2030;border-radius:10px;padding:14px 16px;border-left:3px solid #1a73e8}
+.insight-title{font-size:11px;font-weight:700;color:#8b8fa3;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.insight-item{font-size:12px;color:#9da3b4;line-height:1.75;margin-bottom:5px;padding-left:10px;position:relative}
+.insight-item::before{content:'•';position:absolute;left:0;color:#1a73e8;font-weight:700}
+.insight-item strong{color:#c5c8d2}
+.insight.warn{border-left-color:#f9a825}
+.insight.warn .insight-title{color:#f9a825}
+.insight.warn::before{display:none}
+.insight-item.warn-item::before{color:#f9a825}
 </style>
 </head>
 <body>
@@ -60,21 +69,45 @@ body{font-family:-apple-system,'PingFang SC','Helvetica Neue',Arial,sans-serif;b
       <div class="chart-title">各部门消费金额 TOP10</div>
       <div class="chart-sub">单位：万元</div>
       <div class="chart-box" id="c-dept"></div>
+      <div class="insight">
+        <div class="insight-title">📊 部门分析</div>
+        <div class="insight-item"><strong>头部部门高度集中：</strong>74377部以绝对优势居首，Top3部门合计占54.2%，头部效应显著</div>
+        <div class="insight-item"><strong>末位部门极差大：</strong>排名第一与排名最后的部门消费差距达6.4倍，少数部门可能额度未充分利用</div>
+        <div class="insight-item"><strong>建议：</strong>对低活跃部门做定向推送；结合HR确认各部门人数，计算人均消费强度更有参考价值</div>
+      </div>
     </div>
     <div class="chart-card">
       <div class="chart-title">各省份消费金额 TOP15</div>
       <div class="chart-sub">北京占比超52%</div>
       <div class="chart-box" id="c-province"></div>
+      <div class="insight">
+        <div class="insight-title">🌍 省份分布洞察</div>
+        <div class="insight-item"><strong>北京一枝独秀：</strong>消费占比超50%，是第二名上海的近4倍，与企业总部/分部员工规模强相关</div>
+        <div class="insight-item"><strong>Top3集中70.8%：</strong>北京+上海+浙江三省份占据了绝对主导，头部集中度极高</div>
+        <div class="insight-item"><strong>消费地 vs 商户地：</strong>消费者集中在北上，但商户分布覆盖32省，福利覆盖广但使用集中度高</div>
+      </div>
     </div>
     <div class="chart-card">
       <div class="chart-title">消费价格段分布</div>
       <div class="chart-sub">85%订单在50元以内</div>
       <div class="chart-box" id="c-price" style="height:280px"></div>
+      <div class="insight">
+        <div class="insight-title">💡 消费结构洞察</div>
+        <div class="insight-item"><strong>消费高度碎片化：</strong>53.5%订单在0~20元区间，以小额快餐、饮品为主，员工使用频次极高但单笔极低</div>
+        <div class="insight-item"><strong>典型工作餐模式：</strong>85%订单低于50元，属于即时消费场景，非礼品或大宗采购</div>
+        <div class="insight-item"><strong>大单极少：</strong>1000元+仅135笔（0.33%），整体消费结构健康、分散</div>
+      </div>
     </div>
     <div class="chart-card">
       <div class="chart-title">商户消费 TOP10</div>
       <div class="chart-sub">单位：万元</div>
       <div class="chart-box" id="c-merchant" style="height:280px"></div>
+      <div class="insight">
+        <div class="insight-title">🏪 商户结构洞察</div>
+        <div class="insight-item"><strong>中式餐饮霸榜：</strong>TOP10几乎被面馆、小吃、快餐占领，反映员工午餐刚需强烈</div>
+        <div class="insight-item"><strong>商超稳居第二：</strong>永辉超市等民生类零售，说明日常生活用品消费需求稳定</div>
+        <div class="insight-item"><strong>建议：</strong>与头部商户谈专属折扣；重点拓展早餐、下午茶品类，延伸福利使用时段</div>
+      </div>
     </div>
   </div>
 </div>
@@ -85,11 +118,23 @@ body{font-family:-apple-system,'PingFang SC','Helvetica Neue',Arial,sans-serif;b
       <div class="chart-title">省份消费金额 TOP15</div>
       <div class="chart-sub">单位：万元</div>
       <div class="chart-box" id="c-province2"></div>
+      <div class="insight">
+        <div class="insight-title">🌍 省份金额分析</div>
+        <div class="insight-item"><strong>北京遥遥领先：</strong>北京单省份消费超103万，占全平台总量超50%，与员工地域分布强相关</div>
+        <div class="insight-item"><strong>上海浙江跟随：</strong>上海26万、浙江13万构成第二梯队，合计约占总量20%</div>
+        <div class="insight-item"><strong>建议：</strong>结合各部门人数计算人均消费强度，识别真正的"高消费强度"部门 vs "高人数带动高总量"部门</div>
+      </div>
     </div>
     <div class="chart-card">
       <div class="chart-title">省份单均价 TOP10</div>
       <div class="chart-sub">单位：元/笔</div>
       <div class="chart-box" id="c-province-avg"></div>
+      <div class="insight">
+        <div class="insight-title">💰 省份单均价洞察</div>
+        <div class="insight-item"><strong>海南/宁夏单均价最高：</strong>海南141元、宁夏119元，远超均值，可能是少量高额订单拉高，或高端商户集中</div>
+        <div class="insight-item"><strong>北京单均价较高：</strong>反映北京员工倾向于单笔更高金额消费，可能正餐/聚餐场景更多</div>
+        <div class="insight-item"><strong>消费频次 vs 单价：</strong>高频省份（北上广）单价中等，低频省份单价反而更高，说明场景不同</div>
+      </div>
     </div>
   </div>
 </div>
@@ -99,6 +144,13 @@ body{font-family:-apple-system,'PingFang SC','Helvetica Neue',Arial,sans-serif;b
     <div class="chart-title">各部门消费金额</div>
     <div class="chart-sub">单位：万元</div>
     <div class="chart-box" id="c-dept2"></div>
+    <div class="insight">
+      <div class="insight-title">🏢 部门分析洞察</div>
+      <div class="insight-item"><strong>头部部门高度集中：</strong>Top3部门（74704/74159/74377）合计占54.2%，头部效应非常显著</div>
+      <div class="insight-item"><strong>部门间极差大：</strong>排名第一的74304部（98万）与排名最后的部门差距达6.4倍，存在部门激活空间</div>
+      <div class="insight-item warn"><strong>⚠️ 风险：</strong>Top3部门过于集中，若头部部门人员变动，消费总量波动大，建议拓展更多部门</div>
+      <div class="insight-item"><strong>建议：</strong>对低活跃部门（排名后5名）做定向推送，提升福利感知度；计算各部门人均消费强度</div>
+    </div>
   </div>
 </div>
 
@@ -108,11 +160,23 @@ body{font-family:-apple-system,'PingFang SC','Helvetica Neue',Arial,sans-serif;b
       <div class="chart-title">商户消费总额 TOP10</div>
       <div class="chart-sub">单位：万元</div>
       <div class="chart-box" id="c-merchant2"></div>
+      <div class="insight">
+        <div class="insight-title">🏪 商户总额洞察</div>
+        <div class="insight-item"><strong>中式快餐霸榜：</strong>小妮的店、北京嘉信瑞景、兄弟餐馆等头部餐饮，主导员工午餐刚需</div>
+        <div class="insight-item"><strong>商户集中风险：</strong>TOP5商户占消费比极高，若商户退出平台影响显著，需建立B角储备</div>
+        <div class="insight-item"><strong>建议：</strong>与头部商户签订稳定合作协议；拓展团建/聚餐类高客单价商户对接</div>
+      </div>
     </div>
     <div class="chart-card">
       <div class="chart-title">商户单均价 TOP10</div>
-      <div class="chart-sub">单位：元/笔（实际每笔消费金额）</div>
+      <div class="chart-sub">单位：元/笔</div>
       <div class="chart-box" id="c-merchant-avg"></div>
+      <div class="insight">
+        <div class="insight-title">💎 高单均价商户洞察</div>
+        <div class="insight-item"><strong>高端餐饮客单价惊人：</strong>湖南未下山滨江单均价5285元、上海逸欣兰3157元，属于稀缺高端餐饮</div>
+        <div class="insight-item"><strong>零售类单均价稳定：</strong>永辉超市等民生类在1500-2500元区间，频次稳定，适合日常消费</div>
+        <div class="insight-item"><strong>团建/聚餐场景：</strong>日料、西餐等高客单价业态笔数少但单价高，适合团队消费对接</div>
+      </div>
     </div>
   </div>
 </div>
@@ -123,11 +187,23 @@ body{font-family:-apple-system,'PingFang SC','Helvetica Neue',Arial,sans-serif;b
       <div class="chart-title">每日消费总额趋势</div>
       <div class="chart-sub">单位：万元</div>
       <div class="chart-box" id="c-daily-total"></div>
+      <div class="insight">
+        <div class="insight-title">📅 消费额趋势洞察</div>
+        <div class="insight-item"><strong>月末消费上升：</strong>3月下旬（3/19-3/24）出现明显峰值，可能与月底福利额度即将到期有关，员工有"赶用额度"心理</div>
+        <div class="insight-item"><strong>3月中旬稳定：</strong>3/10-3/18 消费相对平稳，维持在日均7-9万区间</div>
+        <div class="insight-item warn"><strong>⚠️ 风险：</strong>若为赶额度行为，说明员工对福利价值认知需引导；建议定期推送余额提醒，避免集中在期末</div>
+      </div>
     </div>
     <div class="chart-card">
       <div class="chart-title">每日客单价趋势</div>
       <div class="chart-sub">单位：元/笔</div>
       <div class="chart-box" id="c-daily-avg"></div>
+      <div class="insight">
+        <div class="insight-title">📈 客单价趋势洞察</div>
+        <div class="insight-item"><strong>月初客单价波动大：</strong>3月1日出现异常高值（137元/笔），可能存在大单或首日集中报销</div>
+        <div class="insight-item"><strong>月中趋于平稳：</strong>3月中下旬客单价在35-65元区间波动，符合工作餐消费特征</div>
+        <div class="insight-item"><strong>大商户客单价明显更高：</strong>头部商户（品牌餐饮、超市）日单均价远高于普通快餐，是拉高整体均价的引擎</div>
+      </div>
     </div>
   </div>
 </div>
@@ -138,11 +214,23 @@ body{font-family:-apple-system,'PingFang SC','Helvetica Neue',Arial,sans-serif;b
       <div class="chart-title">🏙️ 地理分布（柱状图高度 + 颜色深度）</div>
       <div class="chart-sub">颜色越深=金额越高 | 柱越高=金额越大</div>
       <div class="chart-box" id="c-geo-map" style="height:360px"></div>
+      <div class="insight">
+        <div class="insight-title">🗺️ 3D地理分布洞察</div>
+        <div class="insight-item"><strong>京津冀、长三角双核驱动：</strong>北京、上海、浙江三地3D柱体明显最高，占全国消费总量超70%</div>
+        <div class="insight-item"><strong>西部省份渗透率低：</strong>西藏、青海、新疆柱体几乎不可见，说明西部地区员工规模小或福利使用率低</div>
+        <div class="insight-item"><strong>中部地区均匀分布：</strong>河北、湖北、四川等省份有稳定消费，但总量不大，属于长尾覆盖</div>
+      </div>
     </div>
     <div class="chart-card">
       <div class="chart-title">🌡️ 热力散点图</div>
       <div class="chart-sub">气泡越大=金额越高 | 颜色=强度</div>
       <div class="chart-box" id="c-geo-scatter" style="height:360px"></div>
+      <div class="insight">
+        <div class="insight-title">🔥 热力散点洞察</div>
+        <div class="insight-item"><strong>北京热力最强：</strong>气泡最大且颜色最深，代表消费密度最高的区域，是福利覆盖的核心阵地</div>
+        <div class="insight-item"><strong>沿海经济带：</strong>上海-浙江-江苏形成连续热力带，说明长三角经济带员工到店消费活跃</div>
+        <div class="insight-item"><strong>非经济带机遇：</strong>海南、宁夏单均价排名靠前，说明偏远省份虽频次低、但单笔消费意愿强，有拓展空间</div>
+      </div>
     </div>
   </div>
 </div>
