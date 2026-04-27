@@ -425,7 +425,7 @@ function geoBar3D(id, data) {
       realisticMaterial: { roughness: 0.7, metalness: 0.1 },
       groundPlane: { show: false },
       light: { main: { intensity: 1.2, shadow: false, alpha: 40, beta: 30 } },
-      viewControl: { alpha: 90, beta: 0, zoom: 1.0, autoRotate: false, distance: 220, projection: 'perspective' },
+      viewControl: { alpha: 90, beta: 0, zoom: 1.2, autoRotate: false, distance: 150, minDistance: 150, maxDistance: 300 },
       postEffect: { enable: false },
       temporalSuperSampling: { enable: false }
     },
@@ -497,6 +497,7 @@ function geoScatter(id, data) {
       zoom: 1.2,
       center: [105, 36],
       layoutCenter: ["50%", "50%"],
+      layoutSize: "140%"
     },
     series: [{
       type: 'effectScatter',
