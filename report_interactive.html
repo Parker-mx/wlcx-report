@@ -401,47 +401,47 @@ function geoBar3D(id, data) {
   const chart = echarts.init(el);
 
   const maxVal = Math.max(...data.map(d => d.value));
-  const maxHeight = 15;
 
-  const barData = data.map(d => {
+  // 用圆形气泡大小+颜色深度双重表达金额，替代3D柱
+  const scatterData = data.map(d => {
     const coord = geoDataMap[d.name] || [116.4, 39.9];
-    const h = maxVal > 0 ? (d.value / maxVal) * maxHeight : 0;
+    const r = maxVal > 0 ? 6 + (d.value / maxVal) * 40 : 4;
     return {
       name: d.name,
-      value: [...coord, h],
-      itemStyle: { color: colorByValue(d.value, maxVal) }
+      value: [...coord, r],
+      value2: d.value,
+      itemStyle: { color: colorByValue(d.value, maxVal, 0.9) }
     };
   });
 
   const opt = {
     backgroundColor: 'transparent',
-    geo3D: {
+    geo: {
       map: 'china',
-      roam: true,
-      itemStyle: { color: '#1e2030', opacity: 0.95, borderColor: '#3a3f5c', borderWidth: 0.8 },
-      regionHeight: 0.05,
-      emphasis: { itemStyle: { color: '#2a2f4a' }, label: { show: true, color: '#e8eaed', fontSize: 12 } },
-      shading: 'color',
-      realisticMaterial: { roughness: 0.7, metalness: 0.1 },
-      groundPlane: { show: false },
-      light: { main: { intensity: 1.2, shadow: false, alpha: 40, beta: 30 } },
-      viewControl: { alpha: 90, beta: 0, zoom: 1.2, autoRotate: false, distance: 150, minDistance: 150, maxDistance: 300 },
-      postEffect: { enable: false },
-      temporalSuperSampling: { enable: false }
+      roam: false,
+      silent: true,
+      itemStyle: { areaColor: '#1a2030', borderColor: '#2a3050', borderWidth: 0.8 },
+      emphasis: { itemStyle: { areaColor: '#232840' } },
+      label: { show: false },
+      layoutCenter: ['50%', '50%'],
+      layoutSize: '160%'
     },
     series: [{
-      type: 'bar3D',
-      coordinateSystem: 'geo3D',
-      data: barData,
-      shading: 'color',
-      barSize: 0.8,
-      minHeight: 0.2,
-      maxHeight: maxHeight,
-      emphasis: { itemStyle: { color: '#7BA3FF' } },
+      type: 'effectScatter',
+      coordinateSystem: 'geo',
+      data: scatterData,
+      symbolSize: function(val) { return val[2]; },
+      rippleEffect: { brushType: 'stroke', scale: 2.5 },
+      itemStyle: { color: '#3b6ddc', opacity: 0.9 },
       label: {
-        show: false,
-        formatter: function(p) { return p.data.name + '\n' + p.data.value[2].toFixed(1) + '万'; },
-        color: '#e8eaed', fontSize: 10
+        show: true,
+        position: 'top',
+        distance: 4,
+        formatter: function(p) {
+          if (p.data.value2 < maxVal * 0.05) return '';
+          return p.data.name;
+        },
+        color: '#8b8fa3', fontSize: 10
       }
     }],
     tooltip: {
@@ -458,7 +458,7 @@ function geoBar3D(id, data) {
       show: false,
       min: 0,
       max: maxVal,
-      inRange: { color: ['#0a1444', '#1a3a8f', '#3b6ddc', '#7BA3FF', '#f0f4ff'] }
+      inRange: { color: ['#1a3a8f', '#3b6ddc', '#7BA3FF', '#f0f4ff'] }
     }
   };
 
@@ -491,7 +491,7 @@ function geoScatter(id, data) {
     geo: {
       map: 'china',
       roam: true,
-      itemStyle: { areaColor: '#1e2030', borderColor: '#3a3f5c', borderWidth: 0.8 },
+      itemStyle: { areaColor: '#1a2030', borderColor: '#2a3050', borderWidth: 0.8 },
       emphasis: { itemStyle: { areaColor: '#2a2f4a' }, label: { show: true, color: '#e8eaed', fontSize: 12 } },
       label: { show: false },
       zoom: 1.2,
