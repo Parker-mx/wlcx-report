@@ -212,7 +212,12 @@ body{font-family:-apple-system,'PingFang SC','Helvetica Neue',Arial,sans-serif;b
   <div class="chart-card" style="padding-bottom:8px">
     <div class="chart-title">🏙️ 各省消费金额分布</div>
     <div class="chart-sub">颜色越深=金额越高 | 滚轮缩放 · 拖拽平移 · Hover 查看详情</div>
-    <div class="chart-box" id="c-geo-map" style="height:420px"></div>
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <button id="btn-geo-color" class="tab active" onclick="switchGeoLayer('color')" style="font-size:11px;padding:4px 10px;border-radius:4px;cursor:pointer;background:#5B8FF9;color:#fff;border:none;">色阶模式</button>
+      <button id="btn-geo-bar" class="tab" onclick="switchGeoLayer('bar')" style="font-size:11px;padding:4px 10px;border-radius:4px;cursor:pointer;background:#2a3050;color:#8b8fa3;border:none;">柱状模式</button>
+      <button id="btn-geo-both" class="tab" onclick="switchGeoLayer('both')" style="font-size:11px;padding:4px 10px;border-radius:4px;cursor:pointer;background:#2a3050;color:#8b8fa3;border:none;">叠加模式</button>
+    </div>
+    <div class="chart-box" id="c-geo-chart" style="height:480px"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding:0 4px">
       <div style="font-size:11px;color:#5c6070">单位：万元</div>
       <div id="geo-legend" style="display:flex;align-items:center;gap:6px;font-size:11px;color:#8b8fa3"></div>
@@ -383,7 +388,147 @@ let geoDataMap = {}; // name -> [lng, lat]
 
 function initGeoCharts() {
   if (!geoLoaded) return;
-  geoBar3D('c-geo-map', PROV_FULL);
+  initGeoChart();
+}
+
+let geoChart = null;
+let geoCurrentMode = 'color';
+
+function switchGeoLayer(mode) {
+  geoCurrentMode = mode;
+  ['color','bar','both'].forEach(m => {
+    const btn = document.getElementById('btn-geo-' + m);
+    if (!btn) return;
+    if (m === mode) {
+      btn.style.background = '#5B8FF9';
+      btn.style.color = '#fff';
+      btn.classList.add('active');
+    } else {
+      btn.style.background = '#2a3050';
+      btn.style.color = '#8b8fa3';
+      btn.classList.remove('active');
+    }
+  });
+  renderGeoChart();
+}
+
+function renderGeoChart() {
+  const el = document.getElementById('c-geo-chart');
+  if (!el) return;
+  if (!geoChart) geoChart = echarts.init(el);
+  const data = PROV_FULL;
+  const maxVal = Math.max(...data.map(d => d.value));
+  const mode = geoCurrentMode;
+
+  const colorList = ['#e8edf5', '#c5d0eb', '#8fa8d8', '#5B8FF9', '#1a3a8f'];
+
+  const opt = {
+    backgroundColor: 'transparent',
+    tooltip: {
+      trigger: 'item',
+      backgroundColor: BG,
+      borderColor: GRID,
+      textStyle: { color: '#e8eaed', fontSize: 12 },
+      formatter: function(p) {
+        if (!p.data || p.data.value === undefined) return '';
+        return '<b>' + p.name + '</b><br/>消费总额：<b style="color:#5B8FF9">' + p.data.value.toFixed(2) + '万元</b>';
+      }
+    },
+    geo: {
+      map: 'china',
+      roam: true,
+      itemStyle: { areaColor: '#1a2030', borderColor: '#2a3050', borderWidth: 0.8 },
+      emphasis: { itemStyle: { areaColor: '#2a2f4a' }, label: { show: true, color: '#e8eaed', fontSize: 12 } },
+      label: { show: false },
+      zoom: 1.2,
+      center: [105, 36],
+      layoutCenter: ['50%', '50%'],
+      layoutSize: '140%'
+    },
+    visualMap: {
+      show: mode !== 'bar',
+      min: 0,
+      max: Math.max(maxVal, 1),
+      text: [maxVal.toFixed(0) + '万', '0'],
+      textStyle: { color: '#8b8fa3', fontSize: 10 },
+      realtime: false,
+      calculable: false,
+      inRange: { color: colorList },
+      right: 16,
+      top: 'middle',
+      itemHeight: 160,
+      itemWidth: 12
+    },
+    series: []
+  };
+
+  if (mode === 'color' || mode === 'both') {
+    opt.series.push({
+      name: '消费总额',
+      type: 'map',
+      map: 'china',
+      roam: true,
+      zoom: 1.0,
+      scaleLimit: { min: 0.8, max: 4 },
+      itemStyle: { areaColor: '#1e2030', borderColor: '#2a3050', borderWidth: 0.8 },
+      emphasis: {
+        itemStyle: { areaColor: '#2a3a5c', borderColor: '#3a4f7c', borderWidth: 1 },
+        label: { show: true, color: '#e8eaed', fontSize: 11 }
+      },
+      label: { show: false },
+      data: data.map(d => ({ name: d.name, value: d.value }))
+    });
+  }
+
+  if (mode === 'bar' || mode === 'both') {
+    const barData = data.filter(d => geoDataMap[d.name] && d.value > 0).map(d => {
+      const coord = geoDataMap[d.name];
+      const barH = maxVal > 0 ? 1 + (d.value / maxVal) * 15 : 1;
+      return { name: d.name, value: [...coord, barH], amount: d.value };
+    });
+    opt.series.push({
+      type: 'scatter3D',
+      coordinateSystem: 'geo',
+      data: barData,
+      symbol: 'rect',
+      symbolSize: [14, 14],
+      itemStyle: {
+        color: function(p) {
+          const t = maxVal > 0 ? p.data.amount / maxVal : 0;
+          const idx = Math.min(Math.floor(t * colorList.length), colorList.length - 1);
+          return colorList[idx];
+        },
+        opacity: 0.95,
+        borderColor: '#3a4f7c',
+        borderWidth: 1
+      },
+      label: {
+        show: true,
+        position: 'top',
+        distance: 2,
+        formatter: function(p) { return p.data.amount.toFixed(1) + '万'; },
+        color: '#c5c8d2',
+        fontSize: 8
+      },
+      emphasis: {
+        itemStyle: { shadowBlur: 10, shadowColor: 'rgba(91,143,249,0.5)' }
+      }
+    });
+  }
+
+  if (mode === 'both') {
+    opt.series.forEach((s, i) => {
+      if (s.type === 'map') s.z = 1;
+      if (s.type === 'scatter3D') s.z = 2;
+    });
+  }
+
+  geoChart.setOption(opt, true);
+}
+
+function initGeoChart() {
+  if (typeof echarts === 'undefined') { setTimeout(initGeoChart, 100); return; }
+  renderGeoChart();
 }
 
 function geoBar3D(id, data) {
@@ -600,10 +745,7 @@ function showTab(name) {
       if (c) c.resize();
     });
     if (name === 'geo' && geoLoaded) {
-      ['c-geo-map', 'c-geo-scatter'].forEach(id => {
-        const c = charts[id];
-        if (c) setTimeout(() => c.resize(), 50);
-      });
+      if (geoChart) setTimeout(() => geoChart.resize(), 50);
     }
   });
 }
